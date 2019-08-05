@@ -30,8 +30,8 @@ import org.sonar.api.utils.ValidationMessages;
  * @author Jerome Van Der Linden
  */
 public class AndroidLintProfile extends ProfileDefinition {
-
     private XMLProfileParser xmlProfileParser;
+    private final ProfileRepository rulesRepository = new ProfileRepository();
 
     public AndroidLintProfile(XMLProfileParser xmlProfileParser) {
         this.xmlProfileParser = xmlProfileParser;
@@ -39,6 +39,7 @@ public class AndroidLintProfile extends ProfileDefinition {
 
     @Override
     public RulesProfile createProfile(ValidationMessages messages) {
-        return xmlProfileParser.parseResource(getClass().getClassLoader(), "org/sonar/plugins/android/lint/profile-android-lint.xml", messages);
+        return xmlProfileParser.parseResource(getClass().getClassLoader(),
+                rulesRepository.getLintProfilePath(), messages);
     }
 }

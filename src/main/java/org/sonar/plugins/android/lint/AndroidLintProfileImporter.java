@@ -49,20 +49,17 @@ import java.util.List;
  * @author Jerome Van Der Linden
  */
 public class AndroidLintProfileImporter extends ProfileImporter {
-
     // ----------------------------------
     // CONSTANTS
     // ----------------------------------
-
     private static final Logger logger = LoggerFactory.getLogger(AndroidLintRuleParser.class);
-
     // ----------------------------------
     // ATTRIBUTES
     // ----------------------------------
-
     private RuleFinder ruleFinder;
     private RulesProfile profile;
     private XMLProfileParser xmlProfileParser;
+    private final ProfileRepository rulesRepository;
 
     // ----------------------------------
     // CONSTRUCTORS
@@ -73,6 +70,7 @@ public class AndroidLintProfileImporter extends ProfileImporter {
         setSupportedLanguages(Java.KEY);
         this.ruleFinder = ruleFinder;
         this.xmlProfileParser = xmlProfileParser;
+        rulesRepository = new ProfileRepository();
     }
 
     // ----------------------------------
@@ -82,7 +80,8 @@ public class AndroidLintProfileImporter extends ProfileImporter {
     @Override
     public RulesProfile importProfile(Reader reader, ValidationMessages messages) {
         // import default profile with all rules
-        profile = xmlProfileParser.parseResource(getClass().getClassLoader(), "org/sonar/plugins/android/lint/profile-android-lint.xml", messages);
+        profile = xmlProfileParser.parseResource(getClass().getClassLoader(),
+                rulesRepository.getLintProfilePath(), messages);
 
         if (profile == null) {
             messages.addErrorText("Unable to load default profile");
@@ -98,7 +97,6 @@ public class AndroidLintProfileImporter extends ProfileImporter {
     public void parse(Reader reader, final ValidationMessages messages) {
         try {
             StaxParser parser = new StaxParser(new StaxParser.XmlStreamHandler() {
-
                 @Override
                 public void stream(SMHierarchicCursor rootCursor) throws XMLStreamException {
                     try {
@@ -111,7 +109,6 @@ public class AndroidLintProfileImporter extends ProfileImporter {
             });
 
             parser.parse(reader);
-
         } catch (XMLStreamException e) {
             throw new XmlParserException(e);
         }
@@ -162,7 +159,6 @@ public class AndroidLintProfileImporter extends ProfileImporter {
 
                     logger.info("Rule " + id + " ignored");
                     profile.removeActiveRule(profile.getActiveRules().get(ruleIndex));
-
                 } else if (newSeverity != null) {
 
                     logger.info("Rule " + id + " priority changed:");
@@ -172,13 +168,10 @@ public class AndroidLintProfileImporter extends ProfileImporter {
                         logger.info(defaultRulePriority + " -> " + newRulePriority);
                         activeRules.get(ruleIndex).setSeverity(newRulePriority);
                     }
-
                 }
             } else {
                 messages.addInfoText("Rule " + id + " not found");
             }
         }
     }
-
-
 }
